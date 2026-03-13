@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+<style>
+  @font-face { font-family:'DM Serif Display'; src:url('/fonts/DMSerifDisplay-Regular.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
+  @font-face { font-family:'DM Serif Display'; src:url('/fonts/DMSerifDisplay-Italic.woff2') format('woff2'); font-weight:400; font-style:italic; font-display:swap; }
+  @font-face { font-family:'DM Sans'; src:url('/fonts/DMSans-Light.woff2') format('woff2'); font-weight:300; font-style:normal; font-display:swap; }
+  @font-face { font-family:'DM Sans'; src:url('/fonts/DMSans-Regular.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
+  @font-face { font-family:'DM Sans'; src:url('/fonts/DMSans-Medium.woff2') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
+  @font-face { font-family:'DM Sans'; src:url('/fonts/DMSans-SemiBold.woff2') format('woff2'); font-weight:600; font-style:normal; font-display:swap; }
+  @font-face { font-family:'DM Mono'; src:url('/fonts/DMMono-Regular.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
+  @font-face { font-family:'DM Mono'; src:url('/fonts/DMMono-Medium.woff2') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
+
+  :root {
+    --bg:#F6F3EE; --bg2:#FFFFFF; --bg3:#EDE9E2;
+    --border:#DDD9D1; --border-mid:#C8C3BA;
+    --text:#1C1F24; --muted:#525049;
+    --accent:#2D6A59; --accent2:#245248;
+    --accent-pale:#EAF3EF; --accent-dim:rgba(45,106,89,0.08);
+    --warn:#8A6000; --warn-pale:#FEF3DC; --warn-border:rgba(138,96,0,0.25);
+    --font:'DM Sans',sans-serif; --serif:'DM Serif Display',serif; --mono:'DM Mono',monospace;
+    --radius:10px; --radius-sm:6px;
+    --shadow-sm:0 1px 3px rgba(0,0,0,0.07),0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md:0 4px 12px rgba(0,0,0,0.08),0 2px 4px rgba(0,0,0,0.04);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  [id] { scroll-margin-top:90px; }
+
+  body { background:var(--bg); color:var(--text); font-family:var(--font); font-size:17px; line-height:1.7; -webkit-font-smoothing:antialiased; }
+
+  nav {
+    position:sticky; top:0; z-index:100;
+    background:rgba(246,243,238,0.94); backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--border);
+    padding:0 2rem; display:flex; align-items:center; justify-content:space-between; height:62px;
+  }
+  .nav-logo { display:inline-flex; align-items:center; gap:0.55rem; text-decoration:none; }
+  .nav-logo-icon { flex-shrink:0; width:38px; height:38px; }
+  .nav-logo-text { font-family:var(--mono); font-size:0.82rem; color:var(--accent); letter-spacing:0.03em; font-weight:500; }
+  .nav-links { display:flex; gap:2rem; list-style:none; align-items:center; }
+  .nav-links a { color:var(--muted); text-decoration:none; font-size:0.88rem; font-weight:400; transition:color 0.2s; }
+  .nav-links a:hover { color:var(--text); }
+
+
+  .page-outer { max-width:1100px; margin:0 auto; padding:0 2rem; }
+  .breadcrumb { padding:2rem 0 0; }
+  .breadcrumb a {
+    display:inline-flex; align-items:center; gap:0.4rem;
+    font-family:var(--mono); font-size:0.78rem;
+    color:var(--muted); text-decoration:none; transition:color 0.2s;
+  }
+  .breadcrumb a:hover { color:var(--accent); }
+  .main-layout { display:grid; grid-template-columns:240px 1fr; gap:4rem; padding:3rem 0 6rem; align-items:start; }
+
+  aside { position:sticky; top:80px; height:fit-content; }
+  .toc-label { font-family:var(--mono); font-size:0.7rem; color:var(--accent); letter-spacing:0.12em; text-transform:uppercase; font-weight:500; margin-bottom:0.9rem; }
+  .toc-list { list-style:none; border-left:2px solid var(--border); }
+  .toc-list li a { display:block; padding:0.4rem 1rem; text-decoration:none; color:var(--muted); font-size:0.83rem; font-weight:400; transition:color 0.2s; line-height:1.45; }
+  .toc-list li a:hover, .toc-list li a.active { color:var(--accent); border-left:2px solid var(--accent); margin-left:-2px; }
+
+  .mobile-toc { display:none; background:var(--bg2); border:1.5px solid var(--border); border-radius:var(--radius); margin-bottom:2rem; overflow:hidden; box-shadow:var(--shadow-sm); }
+  .mobile-toc-toggle { width:100%; background:none; border:none; padding:1rem 1.25rem; display:flex; align-items:center; justify-content:space-between; font-family:var(--font); font-size:0.88rem; font-weight:600; color:var(--text); cursor:pointer; }
+  .mobile-toc-toggle svg { transition:transform 0.2s; flex-shrink:0; color:var(--muted); }
+  .mobile-toc-toggle.open svg { transform:rotate(180deg); }
+  .mobile-toc-content { display:none; padding:0.5rem 0 1rem; border-top:1px solid var(--border); }
+  .mobile-toc-content.active { display:block; }
+  .mobile-toc-content .toc-list { border-left:none; padding-left:1rem; }
+  .mobile-toc-content .toc-list li a { font-size:0.88rem; }
+
+  article { min-width:0; }
+  .section-tag { font-family:var(--font); font-size:0.75rem; color:var(--accent); letter-spacing:0.14em; text-transform:uppercase; font-weight:600; margin-bottom:1rem; }
+  article h1 { font-family:var(--serif); font-size:clamp(2rem,4vw,2.9rem); font-weight:400; letter-spacing:-0.02em; line-height:1.1; margin-bottom:1.25rem; color:var(--text); }
+  .reading-time { display:inline-flex; align-items:center; gap:0.5rem; background:var(--bg3); border:1px solid var(--border); padding:0.45rem 1rem; border-radius:var(--radius-sm); font-family:var(--mono); font-size:0.78rem; color:var(--muted); margin-bottom:2rem; }
+  article > p { font-size:1rem; color:var(--muted); line-height:1.8; margin-bottom:1.5rem; font-weight:300; }
+  article h2 { font-family:var(--serif); font-size:clamp(1.4rem,2.5vw,1.75rem); font-weight:400; color:var(--text); margin:3.5rem 0 1.25rem; padding-bottom:0.6rem; border-bottom:1px solid var(--border); letter-spacing:-0.01em; }
+  article h3 { font-size:1.05rem; font-weight:600; color:var(--text); margin:2rem 0 0.75rem; }
+  article p { font-size:0.95rem; color:var(--muted); line-height:1.8; margin-bottom:1.25rem; font-weight:300; }
+  article ul, article ol { padding-left:1.5rem; margin-bottom:1.5rem; }
+  article li { font-size:0.95rem; color:var(--muted); line-height:1.75; margin-bottom:0.6rem; font-weight:300; }
+  article strong { color:var(--text); font-weight:600; }
+  article a { color:var(--accent); text-decoration:none; border-bottom:1px solid rgba(45,106,89,0.3); transition:border-color 0.2s; }
+  article a:hover { border-color:var(--accent); }
+  code { background:var(--bg3); border:1px solid var(--border); padding:0.15rem 0.45rem; border-radius:4px; font-family:var(--mono); font-size:0.88em; color:var(--accent2); }
+
+  .requirements-box { background:var(--accent-pale); border:1.5px solid rgba(45,106,89,0.22); border-radius:var(--radius); padding:1.75rem 2rem; margin:2rem 0 2.5rem; }
+  .requirements-box h3 { font-size:0.95rem; font-weight:600; color:var(--accent); margin-bottom:0.9rem; }
+  .requirements-box ul { list-style:none; padding:0; margin:0; }
+  .requirements-box li { font-size:0.9rem; color:var(--text); padding:0.35rem 0 0.35rem 1.5rem; position:relative; font-weight:400; }
+  .requirements-box li::before { content:"✓"; position:absolute; left:0; color:var(--accent); font-weight:700; }
+
+  .step-card { background:var(--bg2); border:1.5px solid var(--border); border-radius:var(--radius); padding:2rem 2.25rem; margin-bottom:2rem; box-shadow:var(--shadow-sm); }
+  .step-header { display:flex; align-items:center; gap:1rem; margin-bottom:1.25rem; }
+  .step-number { background:var(--accent); color:#fff; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.9rem; flex-shrink:0; font-family:var(--mono); }
+  .step-header h3 { margin:0; font-size:1rem; font-weight:600; }
+  .step-duration { margin-left:auto; background:var(--bg3); border:1px solid var(--border); padding:0.2rem 0.65rem; border-radius:var(--radius-sm); font-family:var(--mono); font-size:0.75rem; color:var(--muted); white-space:nowrap; }
+
+  .pro-tip { background:var(--accent-pale); border:1.5px solid rgba(45,106,89,0.2); border-radius:var(--radius-sm); padding:1.25rem 1.5rem; margin:1.25rem 0; font-size:0.9rem; color:var(--text); font-weight:400; line-height:1.65; }
+  .highlight-box { background:var(--bg3); border:1px solid var(--border); border-left:4px solid var(--accent); border-radius:var(--radius-sm); padding:1.5rem 1.75rem; margin:1.5rem 0; }
+  .highlight-box p, .highlight-box ul { margin-bottom:0; }
+  .warn-box { background:var(--warn-pale); border:1.5px solid var(--warn-border); border-radius:var(--radius-sm); padding:1.25rem 1.5rem; margin:1.25rem 0; }
+  .warn-box p { color:var(--muted); margin-bottom:0; font-size:0.9rem; }
+  .warn-box strong { color:var(--warn); }
+
+  .browser-tabs { display:flex; gap:0; margin-bottom:0; border-bottom:2px solid var(--border); }
+  .browser-tab { padding:0.6rem 1.25rem; font-size:0.85rem; font-weight:500; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; transition:color 0.2s, border-color 0.2s; background:none; border-top:none; border-left:none; border-right:none; font-family:var(--font); }
+  .browser-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+  .browser-panel { display:none; padding-top:1.5rem; }
+  .browser-panel.active { display:block; }
+
+  .faq-item { border-top:1px solid var(--border); padding:1.25rem 0; }
+  .faq-item:last-child { border-bottom:1px solid var(--border); }
+  .faq-item h3 { font-size:0.95rem; font-weight:600; color:var(--text); margin:0 0 0.5rem; }
+  .faq-item p { margin:0; font-size:0.9rem; }
+
+  .checklist { list-style:none; padding:0; margin:0; }
+  .checklist li { font-size:0.95rem; color:var(--muted); padding:0.3rem 0; margin-bottom:0; font-weight:300; }
+
+  .cta-box { background:var(--accent); border-radius:var(--radius); padding:3rem 2.5rem; margin-top:4rem; text-align:center; }
+  .cta-box h3 { font-family:var(--serif); font-size:1.7rem; font-weight:400; color:#fff; margin-bottom:1rem; }
+  .cta-box p { color:rgba(255,255,255,0.85); margin-bottom:2rem; font-size:0.95rem; font-weight:300; }
+  .cta-btn { display:inline-flex; align-items:center; gap:0.5rem; background:#fff; color:var(--accent); padding:0.8rem 1.75rem; border-radius:var(--radius); text-decoration:none; border:none; font-weight:600; font-size:0.95rem; transition:box-shadow 0.2s, transform 0.2s; box-shadow:0 2px 10px rgba(0,0,0,0.15); }
+  .cta-btn:hover { box-shadow:0 6px 20px rgba(0,0,0,0.2); transform:translateY(-2px); border:none; }
+
+  footer { border-top:1px solid var(--border); padding:2rem; display:flex; justify-content:space-between; align-items:center; max-width:1100px; margin:0 auto; flex-wrap:wrap; gap:1rem; }
+  .footer-logo { font-family:var(--mono); font-size:0.78rem; color:var(--muted); }
+  .footer-links { display:flex; gap:1.5rem; list-style:none; }
+  .footer-links a { font-size:0.82rem; color:var(--muted); text-decoration:none; border:none; transition:color 0.2s; }
+  .footer-links a:hover { color:var(--text); }
+
+  .back-to-top { position:fixed; bottom:2rem; right:2rem; font-size:0.78rem; color:var(--muted); text-decoration:none; border:1.5px solid var(--border-mid); padding:0.4rem 0.8rem; border-radius:var(--radius-sm); background:var(--bg2); box-shadow:var(--shadow-sm); opacity:0; pointer-events:none; transition:opacity 0.3s,color 0.2s,border-color 0.2s; }
+  .back-to-top.visible { opacity:1; pointer-events:auto; }
+  .back-to-top:hover { color:var(--accent); border-color:rgba(45,106,89,0.5); }
+
+  @media (max-width:900px) {
+    .nav-links { display:none; }
+    .main-layout { grid-template-columns:1fr; gap:0; padding-top:2rem; }
+    aside { display:none; }
+    .mobile-toc { display:block; }
+    footer { flex-direction:column; align-items:flex-start; }
+    .cta-box { padding:2rem 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="https://pc-privacytools.org" class="nav-logo" aria-label="PC Privacy Tools – Home" target="_blank" rel="noopener noreferrer">
+    <svg class="nav-logo-icon" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M19 4L7 9.5V18C7 25 12.5 31.2 19 33C25.5 31.2 31 25 31 18V9.5L19 4Z" fill="#EAF3EF" stroke="#2D6A59" stroke-width="2" stroke-linejoin="round"/>
+      <polyline points="13,19 17.5,24 26,14" stroke="#2D6A59" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="nav-logo-text">pc-privacytools.org</span>
+  </a>
+</nav>
+
+<div class="page-outer">
+  
+
+  <div class="main-layout">
+
+    <!-- SIDEBAR TOC -->
+    <aside>
+      <p class="toc-label">Table of Contents</p>
+      <ul class="toc-list">
+        <li><a href="#intro">What's leaking and why</a></li>
+        <li><a href="#test">1. Run the leak test</a></li>
+        <li><a href="#doh">2. Enable DNS-over-HTTPS</a></li>
+        <li><a href="#webrtc">3. Fix WebRTC leaks</a></li>
+        <li><a href="#verify">4. Verify your settings</a></li>
+        <li><a href="#providers">DoH provider comparison</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="#checklist">Final checklist</a></li>
+      </ul>
+    </aside>
+
+    <!-- ARTICLE -->
+    <article>
+
+      <!-- MOBILE TOC -->
+      <div class="mobile-toc">
+        <button class="mobile-toc-toggle" id="mobileTocToggle" aria-expanded="false">
+          Table of Contents
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="mobile-toc-content" id="mobileTocContent">
+          <ul class="toc-list">
+            <li><a href="#intro">What's leaking and why</a></li>
+            <li><a href="#test">1. Run the leak test</a></li>
+            <li><a href="#doh">2. Enable DNS-over-HTTPS</a></li>
+            <li><a href="#webrtc">3. Fix WebRTC leaks</a></li>
+            <li><a href="#verify">4. Verify your settings</a></li>
+            <li><a href="#providers">DoH provider comparison</a></li>
+            <li><a href="#faq">FAQ</a></li>
+            <li><a href="#checklist">Final checklist</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="section-tag">Free Guide</div>
+      <h1 id="intro">DNS-over-HTTPS and WebRTC Leaks</h1>
+      <div class="reading-time">⏱ 15 minutes</div>
+
+      <p>Every time you visit a website, your browser makes a DNS lookup — a request that translates a domain name into an IP address. By default, this lookup happens in plain text over your internet connection, which means your internet provider can see every domain you visit, even when the pages themselves are encrypted over HTTPS.</p>
+
+      <p>At the same time, a browser feature called WebRTC — originally designed for video calls — can expose your real IP address to websites, even when you're using a VPN. This guide fixes both problems, step by step.</p>
+
+      <div class="requirements-box">
+        <h3>What to expect</h3>
+        <ul>
+          <li>DNS-over-HTTPS encrypts your DNS queries so your ISP can't see what you look up</li>
+          <li>Disabling WebRTC leaks stops websites from detecting your real IP behind a VPN</li>
+          <li>Setup takes around 15 minutes in Firefox or Chrome</li>
+          <li>Both fixes are free and require no extra software</li>
+        </ul>
+      </div>
+
+      <!-- STEP 1 -->
+      <h2 id="test">1. Run the Leak Test First</h2>
+
+      <p>Before changing any settings, check what your browser is currently exposing. This gives you a baseline so you can confirm the fix worked afterwards.</p>
+
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-number">1</div>
+          <h3>Check your current exposure</h3>
+          <span class="step-duration">⏱ 2 min</span>
+        </div>
+        <ol>
+          <li>Open <a href="/tools/dns-leak-test">the DNS &amp; IP Leak Test tool</a> in a new tab.</li>
+          <li>The test runs automatically. Note the results in the <strong>WebRTC IP Leak</strong> and <strong>DNS Configuration</strong> sections.</li>
+          <li>If WebRTC shows a public IP address, or DNS-over-HTTPS shows anything other than "Enabled by default", continue with this guide.</li>
+        </ol>
+        <div class="highlight-box">
+          <p>Keep this tab open. You'll return to it in Step 4 to confirm your changes worked.</p>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <h2 id="doh">2. Enable DNS-over-HTTPS</h2>
+
+      <p>DNS-over-HTTPS (DoH) encrypts your DNS queries and sends them to a privacy-respecting resolver instead of your ISP's servers. The instructions differ slightly between browsers.</p>
+
+      <div class="browser-tabs">
+        <button class="browser-tab active" onclick="showTab('firefox-doh', this)">Firefox</button>
+        <button class="browser-tab" onclick="showTab('chrome-doh', this)">Chrome</button>
+        <button class="browser-tab" onclick="showTab('edge-doh', this)">Edge</button>
+      </div>
+
+      <div class="browser-panel active" id="firefox-doh">
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-number">2</div>
+            <h3>Firefox — Enable DNS-over-HTTPS</h3>
+            <span class="step-duration">⏱ 3 min</span>
+          </div>
+          <p>Firefox enables DoH by default in most countries, but the setting is worth verifying — and you can choose a stronger provider than the default.</p>
+          <ol>
+            <li>Type <code>about:preferences#privacy</code> in the address bar and press Enter.</li>
+            <li>Scroll down to <strong>DNS over HTTPS</strong>.</li>
+            <li>Make sure <strong>"Enable DNS over HTTPS using:"</strong> is selected (not "Off").</li>
+            <li>From the dropdown, choose your preferred provider. The default is Cloudflare. For more options, see the <a href="#providers">provider comparison</a> below.</li>
+          </ol>
+          <div class="pro-tip">
+            <strong>Max Protection mode:</strong> Firefox 127 and later includes a "Max Protection" option that blocks all DNS queries that can't use DoH — useful if you want zero fallback to your ISP.
+          </div>
+        </div>
+      </div>
+
+      <div class="browser-panel" id="chrome-doh">
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-number">2</div>
+            <h3>Chrome — Enable Secure DNS</h3>
+            <span class="step-duration">⏱ 3 min</span>
+          </div>
+          <ol>
+            <li>Go to <strong>Settings</strong> (three dots → Settings).</li>
+            <li>Click <strong>Privacy and security</strong> → <strong>Security</strong>.</li>
+            <li>Scroll down to <strong>Advanced</strong> → <strong>Use secure DNS</strong>.</li>
+            <li>Enable the toggle.</li>
+            <li>Choose <strong>"With"</strong> and select a provider from the list, or enter a custom DoH URL.</li>
+          </ol>
+          <div class="warn-box">
+            <p><strong>Note:</strong> Chrome's "Automatic" mode only upgrades DNS queries if your current ISP supports DoH — many don't. Choose a specific provider to guarantee the protection.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="browser-panel" id="edge-doh">
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-number">2</div>
+            <h3>Edge — Enable Secure DNS</h3>
+            <span class="step-duration">⏱ 3 min</span>
+          </div>
+          <ol>
+            <li>Go to <strong>Settings</strong> (three dots → Settings).</li>
+            <li>Click <strong>Privacy, search, and services</strong>.</li>
+            <li>Scroll to <strong>Security</strong> → <strong>Use secure DNS to specify how to lookup the network address for websites</strong>.</li>
+            <li>Enable the toggle and choose a provider.</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <h2 id="webrtc">3. Fix WebRTC Leaks</h2>
+
+      <p>WebRTC is a browser API that enables real-time features like video calls. As a side effect, it can reveal your real local and public IP address to websites — bypassing your VPN's IP masking entirely. The fix depends on your browser.</p>
+
+      <div class="browser-tabs">
+        <button class="browser-tab active" onclick="showTab('firefox-webrtc', this)">Firefox</button>
+        <button class="browser-tab" onclick="showTab('chrome-webrtc', this)">Chrome</button>
+      </div>
+
+      <div class="browser-panel active" id="firefox-webrtc">
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-number">3</div>
+            <h3>Firefox — Disable WebRTC</h3>
+            <span class="step-duration">⏱ 2 min</span>
+          </div>
+          <p>Firefox lets you disable WebRTC entirely through its advanced configuration page. This is the most reliable fix.</p>
+          <ol>
+            <li>Type <code>about:config</code> in the address bar and press Enter.</li>
+            <li>Click <strong>"Accept the Risk and Continue"</strong>.</li>
+            <li>In the search bar, type <code>media.peerconnection.enabled</code>.</li>
+            <li>Double-click the entry to toggle its value from <strong>true</strong> to <strong>false</strong>.</li>
+          </ol>
+          <div class="highlight-box">
+            <p>This disables WebRTC completely. If you use video calls in the browser (Google Meet, Jitsi, etc.), you'll need to re-enable it for those sessions — or use a desktop app instead.</p>
+          </div>
+          <div class="pro-tip">
+            <strong>Alternative — partial mitigation:</strong> If you need WebRTC for video calls, search for <code>media.peerconnection.ice.default_address_only</code> in about:config and set it to <strong>true</strong>. This prevents local IP exposure but still allows public IPs to be used.
+          </div>
+        </div>
+      </div>
+
+      <div class="browser-panel" id="chrome-webrtc">
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-number">3</div>
+            <h3>Chrome — Restrict WebRTC with uBlock Origin</h3>
+            <span class="step-duration">⏱ 3 min</span>
+          </div>
+          <p>Chrome does not allow disabling WebRTC through settings. The most effective approach is uBlock Origin, which has a built-in WebRTC leak prevention option.</p>
+          <ol>
+            <li>Install <a href="https://chrome.google.com/webstore/detail/ublock-origin/" target="_blank" rel="noopener">uBlock Origin</a> from the Chrome Web Store if you haven't already.</li>
+            <li>Click the uBlock Origin icon in your toolbar → open the dashboard (the gear icon).</li>
+            <li>Go to the <strong>Settings</strong> tab.</li>
+            <li>Under <strong>Privacy</strong>, enable <strong>"Prevent WebRTC from leaking local IP addresses"</strong>.</li>
+          </ol>
+          <div class="warn-box">
+            <p><strong>Note:</strong> This setting prevents <em>local</em> IP exposure. If you're using a VPN and want to verify your public IP isn't leaking, run the leak test again after applying this setting.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <h2 id="verify">4. Verify Your Settings</h2>
+
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-number">4</div>
+          <h3>Run the test again</h3>
+          <span class="step-duration">⏱ 2 min</span>
+        </div>
+        <ol>
+          <li>Go back to the <a href="/tools/dns-leak-test">DNS &amp; IP Leak Test</a> tab.</li>
+          <li>Click <strong>Run test again</strong>.</li>
+          <li><strong>WebRTC IP Leak</strong> should now show "No IP addresses detected" or display the badge "Protected".</li>
+          <li><strong>DNS Configuration</strong> should show your DoH status as "Enabled by default" (Firefox) or show the provider you selected.</li>
+        </ol>
+        <div class="highlight-box">
+          <p>If public IPs still appear in the WebRTC section after applying the Firefox fix, double-check that <code>media.peerconnection.enabled</code> is set to <strong>false</strong>, not true. A page reload may also be needed after the change.</p>
+        </div>
+      </div>
+
+      <!-- PROVIDER COMPARISON -->
+      <h2 id="providers">DoH Provider Comparison</h2>
+
+      <p>All DoH providers encrypt your DNS queries from your ISP, but they differ in what they log, where they're based, and whether they filter content.</p>
+
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-number" style="background:var(--bg3);color:var(--muted);">☰</div>
+          <h3>Cloudflare — 1.1.1.1</h3>
+        </div>
+        <p><strong>DoH URL:</strong> <code>https://cloudflare-dns.com/dns-query</code></p>
+        <p>The default in Firefox. Fast and reliable. Cloudflare commits to deleting query logs within 24 hours and has had its no-logging claim independently audited by KPMG. Based in the US, which some users prefer to avoid for jurisdiction reasons. Does not filter content by default.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-number" style="background:var(--bg3);color:var(--muted);">☰</div>
+          <h3>Mullvad — Recommended for privacy</h3>
+        </div>
+        <p><strong>DoH URL:</strong> <code>https://doh.mullvad.net/dns-query</code></p>
+        <p>Operated by the same company behind the Mullvad VPN. Explicitly no-log, based in Sweden, and does not filter or redirect queries. No account or Mullvad subscription required to use the DNS resolver. A strong choice if you prioritise jurisdiction outside the US.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-number" style="background:var(--bg3);color:var(--muted);">☰</div>
+          <h3>Google — 8.8.8.8</h3>
+        </div>
+        <p><strong>DoH URL:</strong> <code>https://dns.google/dns-query</code></p>
+        <p>Fast and globally distributed. Google does log some DNS data and may use it for its advertising business. Not recommended if you're trying to reduce your exposure to Google's data collection.</p>
+      </div>
+
+      <!-- FAQ -->
+      <h2 id="faq">Frequently Asked Questions</h2>
+
+      <div class="faq-item">
+        <h3>Does DNS-over-HTTPS hide my browsing from my ISP completely?</h3>
+        <p>It hides the domain names you look up. Your ISP can still see which IP addresses you connect to — and in many cases IP addresses map back to specific services. DoH is a meaningful improvement, but it is not a substitute for a VPN if you want to hide the destinations of your traffic entirely.</p>
+      </div>
+      <div class="faq-item">
+        <h3>Will disabling WebRTC break anything?</h3>
+        <p>It will break browser-based video calls (Google Meet, Jitsi, Teams in the browser) and some peer-to-peer file sharing. If you use these services, you can re-enable WebRTC before the call and disable it again afterwards, or use dedicated desktop apps for video calls instead.</p>
+      </div>
+      <div class="faq-item">
+        <h3>Do I need a VPN if I have DNS-over-HTTPS?</h3>
+        <p>They solve different problems. DoH encrypts your DNS lookups. A VPN encrypts all your traffic and hides your IP address from the websites you visit. If you only want to hide your DNS queries from your ISP, DoH is sufficient. If you want to hide your IP address or your traffic from the websites you visit, you need a VPN.</p>
+      </div>
+      <div class="faq-item">
+        <h3>Does Safari support DNS-over-HTTPS?</h3>
+        <p>Not through browser settings. On macOS, you can enable DoH system-wide through a configuration profile or a third-party app, but Safari itself has no built-in DoH setting. This is one reason Firefox is recommended for privacy-conscious users on Mac.</p>
+      </div>
+      <div class="faq-item">
+        <h3>My VPN claims to handle DNS automatically — do I still need this?</h3>
+        <p>It depends on the VPN. Many VPNs route DNS through their own servers when their app is active, but the browser may still use its own DNS for queries initiated outside the VPN tunnel. Enabling DoH in your browser adds a second layer of protection that works independently of the VPN app.</p>
+      </div>
+
+      <!-- CHECKLIST -->
+      <h2 id="checklist">Final Checklist</h2>
+      <div class="highlight-box">
+        <ul class="checklist">
+          <li>✓ &nbsp;Ran the DNS &amp; IP Leak Test before making changes</li>
+          <li>✓ &nbsp;DNS-over-HTTPS enabled in your browser</li>
+          <li>✓ &nbsp;Chosen a privacy-respecting DoH provider (not Google)</li>
+          <li>✓ &nbsp;WebRTC disabled or restricted</li>
+          <li>✓ &nbsp;Ran the leak test again to confirm no leaks</li>
+          <li>✓ &nbsp;WebRTC result shows "Protected" or no public IPs</li>
+        </ul>
+      </div>
+
+      
+
+    </article>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span class="footer-logo">
+    <svg width="18" height="18" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:inline-block;vertical-align:middle;margin-right:0.35rem;opacity:0.55;">
+      <path d="M19 4L7 9.5V18C7 25 12.5 31.2 19 33C25.5 31.2 31 25 31 18V9.5L19 4Z" fill="#EAF3EF" stroke="#6B6860" stroke-width="2" stroke-linejoin="round"/>
+      <polyline points="13,19 17.5,24 26,14" stroke="#6B6860" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>© 2026 pc-privacytools.org</span>
+  
+</footer>
+
+<a href="#" class="back-to-top" id="backToTop">↑ top</a>
+<script defer src="https://cloud.umami.is/script.js" data-website-id="f934f276-a733-4fda-8d2a-f07c5d51049b"></script>
+<script>
+  const backToTop = document.getElementById('backToTop');
+  window.addEventListener('scroll', () => { backToTop.classList.toggle('visible', window.scrollY > 400); });
+  backToTop.addEventListener('click', e => { e.preventDefault(); window.scrollTo({ top:0, behavior:'smooth' }); });
+
+
+
+  const mobileTocToggle = document.getElementById('mobileTocToggle');
+  const mobileTocContent = document.getElementById('mobileTocContent');
+  if (mobileTocToggle) {
+    mobileTocToggle.addEventListener('click', () => {
+      const isOpen = mobileTocContent.classList.toggle('active');
+      mobileTocToggle.classList.toggle('open', isOpen);
+      mobileTocToggle.setAttribute('aria-expanded', isOpen);
+    });
+  }
+
+  function showTab(panelId, btn) {
+    const group = btn.closest('.browser-tabs, article');
+    // deactivate all tabs and panels in same section
+    btn.parentElement.querySelectorAll('.browser-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    // find sibling panels
+    let next = btn.closest('.browser-tabs').nextElementSibling;
+    while (next && next.classList.contains('browser-panel')) {
+      next.classList.remove('active');
+      next = next.nextElementSibling;
+    }
+    document.getElementById(panelId).classList.add('active');
+  }
+
+  const sections = document.querySelectorAll('[id]');
+  const tocLinks = document.querySelectorAll('.toc-list a');
+  function highlightTOC() {
+    let current = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) current = s.getAttribute('id'); });
+    tocLinks.forEach(l => { l.classList.toggle('active', l.getAttribute('href') === '#' + current); });
+  }
+  window.addEventListener('scroll', highlightTOC);
+
+  document.querySelectorAll('.toc-list a').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (!target) return;
+      window.scrollTo({ top: target.offsetTop - 90, behavior:'smooth' });
+      if (window.innerWidth <= 900) {
+        mobileTocContent.classList.remove('active');
+        mobileTocToggle.classList.remove('open');
+        mobileTocToggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
